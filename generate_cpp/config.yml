@@ -1,0 +1,213 @@
+data:
+    dat_order: [D, K, D0, pi]
+    model: cfit
+    data: [["../data/data_run1.dat"],["../data/data_run2.dat"],["../data/data_run1_K3pi.dat"],["../data/data_run2_K3pi.dat"]]
+    data_charge: [["../data/data_charge_run1.dat"],["../data/data_charge_run2.dat"], ["../data/data_charge_run1_K3pi.dat"], ["../data/data_charge_run2_K3pi.dat"]] # ,["../data/data_charge_run1_K3pi.dat"],["../data/data_charge_run2_K3pi.dat"]] 
+    data_bg_value: ["../data/data_run1_bgv.dat", "../data/data_run2_bgv.dat", "../data/data_run1_K3pi_bgv.dat", "../data/data_run2_K3pi_bgv.dat"]
+    bg_frac: [0.04450088667961454, 0.05032349138510855, 0.018918373697483427, 0.05461426396204868]
+    phsp: [["../data/eff_run1.txt"], ["../data/eff_run2.txt"], ["../data/eff_run1_K3pi.txt"], ["../data/eff_run2_K3pi.txt"]]
+    phsp_charge: [["../data/eff_run1_c.txt"], ["../data/eff_run2_c.txt"], ["../data/eff_run1_K3pi_c.txt"], ["../data/eff_run2_K3pi_c.txt"]]
+    phsp_weight: ["../data/eff_run1_w.txt", "../data/eff_run2_w.txt", "../data/eff_run1_K3pi_w.txt", "../data/eff_run2_K3pi_w.txt"]
+    phsp_bg_value: ["../data/eff_run1_bgv.dat", "../data/eff_run2_bgv.dat", "../data/eff_run1_K3pi_bgv.dat", "../data/eff_run2_K3pi_bgv.dat"]
+    phsp_noeff: ["../../combine2/data/flat_mc.dat"]
+    cached_amp: True
+    r_boost: True
+    center_mass: False
+    random_z: True
+
+decay:
+    Bp: 
+      - [DstD, K, p_break: True, barrier_factor_norm: True]
+      - [DstK, D, p_break: True, barrier_factor_norm: True]
+      - [DK, Dst, p_break: True, barrier_factor_norm: True]
+    DstD: [Dst, D, barrier_factor_norm: True]
+    DstK: [Dst, K, barrier_factor_norm: True]
+    DK: [D, K, barrier_factor_norm: True]
+    Dst: [D0, pi, has_barrier_factor: False]
+
+particle:
+    $top:
+        Bp:
+            display: "$B^{+}$"
+            J: 0
+            P: -1
+            mass: 5.27934
+    $finals:
+        D:
+            display: "$D^{+}$"
+            J: 0
+            P: -1
+            mass: 1.86965
+        K:
+            display: "$K^{+}$"
+            J: 0
+            P: -1
+            mass: 0.493677
+        D0:
+            display: "D^{0}"
+            J: 0
+            P: -1
+            mass: 1.86483
+        pi: 
+            display: "$\\pi^{-}$"
+            J: 0
+            P: -1
+            mass: 0.13957039
+    Dst:
+        display: "$D^{*-}$"
+        J: 1
+        P: -1
+        mass: 2.01026
+        model: one
+    $include: Resonances.yml
+    DstD:
+        - Zc(3900)
+        - X(3915)(0-)
+        - chi(c2)(3930)
+        - X(3940)(1+)
+        - X(3993)
+       # - X(4020)
+        - Psi(4040)
+        - chi(c1)(4140)
+        - Psi(4160)
+        # - Psi(4230)
+        - chi(c1)(4274)
+        # - Psi(4360)
+        - Psi(4415)
+        # - Zc(4430)
+        # - PsiKmatrix
+        # - Psi(4660)
+        - X(4630)
+        # - X(4685)
+        - X(4700)
+        # - NR(0-)SPp
+        # - NR(1-)PPp
+        # - NR(1+)PSp
+        - NR(0-)SPm
+        # - NR(1-)PPm
+        # - NR(1+)PSm
+    DstK: []
+    DK: []
+    X0(2900):
+        J: 0
+        P: +1
+        mass: 2.8687
+        width: 0.0652
+        m_min: 2.86
+        m_max: 2.94
+        g_min: 0.01
+        g_max: 0.3
+        # float: mg
+    X1(2900):
+        J: 1
+        P: -1
+        mass: 2.9067
+        width: 0.110
+        m_min: 2.86
+        m_max: 2.94
+        g_min: 0.01
+        g_max: 0.3
+    # override params
+    # X(3915)(0-):
+    #    model: {expr: -BWR}
+    X(3940)(1+):
+        model: GS_rho # BWR_LS
+    Zc(3900):
+        model: BWR_LS
+    X(4020):
+        model: BWR_LS
+    X(3993):
+        model: BWR_LS
+    # chi(c2)(3930):
+    #     model: {expr: -BWR}
+    chi(c1)(4274):
+        model: BWR_LS
+    NR(0-)SPp:
+        model: spline_c # spline_c_idx
+        mass: 4.35
+        max_m: 4.8
+        min_m: 3.87
+        interp_N: 10
+        with_bound: True
+    NR(0-)SPm:
+        # model: New
+        mass: 4.35
+        model: spline_c_idx
+        max_m: 4.8
+        min_m: 3.87
+        interp_N: 10
+        with_bound: True
+    # NR(1-)PPm:
+    #    model: {expr: -one}
+    # NR(1+)PSm:
+    #    model: {expr: -one}
+
+
+constrains:
+  decay: { fix_chain_idx: 0, fix_chain_val: 1 }
+
+
+plot:
+    config:
+        bins: 72
+    mass:
+        DK:
+            display: "$M(D^{+}K^{+})$"
+            range: [2.1, 3.3]
+        DstK: 
+            display: "$M(D^{*-}K^{+})$"
+            range: [2.2, 3.5]
+        DstD: 
+            display: "$M(D^{*-}D^{+})$"
+            range: [3.8, 5.2]
+    angle:
+        Bp/DK:
+            alpha:
+                display: "$\\phi_{1}$"
+            cos(beta):
+                display: "$\\cos(\\theta_1)$" 
+                range: [-1, 1]
+        Bp/DstK:
+            alpha:
+                display: "$\\phi_{2}$"
+            cos(beta):
+                display: "$\\cos(\\theta_2)$"
+        Bp/DstD:
+            alpha:
+                display: "$\\phi_{3}$"
+            cos(beta):
+                display: "$\\cos(\\theta_3)$"
+        DstD/Dst:
+            alpha:
+                display: "$\\phi_{11}$"
+            cos(beta):
+                display: "$\\cos(\\theta_{11})$"
+        DstK/Dst:
+            alpha:
+                display: "$\\phi_{1}$"
+            cos(beta):
+                display: "$\\cos(\\theta_{21})$"
+        DK/D:
+            alpha:
+                display: "$\\phi_{1}$"
+            cos(beta):
+                display: "$\\cos(\\theta_{31})$"
+        DstD/Dst/D0:
+            alpha:
+                display: "$\\phi_{33}$"
+            cos(beta):
+                display: "$\\cos(\\theta_{33})$"
+        DstK/Dst/D0:
+            alpha:
+                display: "$\\phi_{33}$"
+            cos(beta):
+                display: "$\\cos(\\theta_{33})$"
+        DK/Dst/D0:
+            alpha:
+                display: "$\\phi_{33}$"
+            cos(beta):
+                display: "$\\cos(\\theta_{33})$"
+    2Dplot:
+        m_DstD & m_DstK:
+            display: "$M_{D*D}$ vs $M_{D*K}$"
+            plot_figs: ["data", "sideband", "fitted"]
