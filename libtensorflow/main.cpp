@@ -3,12 +3,12 @@
 // #include <cppflow/ops.h>
 
 #include <tensorflow/c/c_api.h>
-#include <tensorflow/c/eager/c_api.h>
 // C++ headers
 #include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
+#include <stdexcept>
 
 inline bool status_check(TF_Status *status) {
   if (TF_GetCode(status) != TF_OK) {
@@ -28,32 +28,13 @@ public:
                        TF_DeleteTensor};
     memcpy(TF_TensorData(this->tf_tensor.get()), data,
            TF_TensorByteSize(this->tf_tensor.get()));
-
-    std::shared_ptr<TF_Status> status = {TF_NewStatus(), TF_DeleteStatus};
-    this->tfe_handle = {
-        TFE_NewTensorHandle(this->tf_tensor.get(), status.get()),
-        TFE_DeleteTensorHandle};
-    status_check(status.get());
   }
 
   std::shared_ptr<TF_Tensor> get_tensor() const {
-    if (!tf_tensor) {
-      std::shared_ptr<TF_Status> status = {TF_NewStatus(), &TF_DeleteStatus};
-
-      tf_tensor = {TFE_TensorHandleResolve(tfe_handle.get(), status.get()),
-                   TF_DeleteTensor};
-      status_check(status.get());
-    }
     return tf_tensor;
   }
   Tensor(TF_Tensor *t) {
     this->tf_tensor = {t, TF_DeleteTensor};
-    std::shared_ptr<TF_Status> status = {TF_NewStatus(), &TF_DeleteStatus};
-    this->tfe_handle = {
-        TFE_NewTensorHandle(this->tf_tensor.get(), status.get()),
-        TFE_DeleteTensorHandle};
-
-    status_check(status.get());
   }
 
   std::vector<double> get_data() {
@@ -74,7 +55,6 @@ public:
   }
 
   mutable std::shared_ptr<TF_Tensor> tf_tensor;
-  std::shared_ptr<TFE_TensorHandle> tfe_handle;
 };
 
 std::string parse_name_string(const std::string &name) {
@@ -108,11 +88,10 @@ public:
   }
 
   ~Model() {
-    auto status = TF_NewStatus();
+    std::shared_ptr<TF_Status> status = {TF_NewStatus(), &TF_DeleteStatus};
     TF_DeleteGraph(this->graph);
-    TF_DeleteSession(this->session, status);
-    status_check(status);
-    TF_DeleteStatus(status);
+    TF_DeleteSession(this->session, status.get());
+    status_check(status.get());
   }
 
   std::vector<Tensor>
@@ -138,8 +117,7 @@ public:
     }
 
     std::vector<TF_Output> out_ops(outputs.size());
-    auto out_val = std::vector<TF_Tensor *>(
-        outputs.size()); // std::make_unique<TF_Tensor(*[])>(outputs.size());
+    auto out_val = std::vector<TF_Tensor *>(outputs.size());
     for (decltype(outputs.size()) i = 0; i < outputs.size(); i++) {
       const auto op_name = parse_name_string(outputs[i]);
       const auto op_idx = parse_name_index(outputs[i]);
@@ -174,17 +152,23 @@ public:
 
 int main() {
   Model model("model2/");
+  
+  for (int i = 0; i < 10; i++) {
 
-  for (int i = 0; i < 100; i++) {
     auto p_0 = Tensor({2.19771882, 0.73008701, -0.55660393, -0.70110049});
     auto p_1 = Tensor({0.77582355, -0.19216696, 0.4872549, -0.2895509});
     auto p_2 = Tensor({2.12028122, -0.48871821, 0.04448316, 0.8815766});
     auto p_3 = Tensor({0.18551641, -0.04920183, 0.02486587, 0.1090748});
+    
+    std::vector<std::tuple<std::string, Tensor>> inputs;
+    inputs.push_back(std::tuple<std::string, Tensor>("serving_default_p_0:0",p_0));
+    inputs.push_back(std::tuple<std::string, Tensor>("serving_default_p_1:0",p_1));
+    inputs.push_back(std::tuple<std::string, Tensor>("serving_default_p_2:0",p_2));
+    inputs.push_back(std::tuple<std::string, Tensor>("serving_default_p_3:0",p_3));
 
-    auto output = model({{"serving_default_p_0:0", p_0},
-                         {"serving_default_p_1:0", p_1},
-                         {"serving_default_p_2:0", p_2},
-                         {"serving_default_p_3:0", p_3}},
+
+    
+    auto output = model(inputs,
                         {
                             "StatefulPartitionedCall:0",
                         });
